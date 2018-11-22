@@ -144,9 +144,31 @@ mongo {
     "url" : "http://www.xicidaili.com/nn/5",
     "date" : NumberLong(1542854672738)
 }
+
+{
+    "url" : "http://www.66ip.cn/mo.php?sxb=&tqsl=1000&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea=http%3A%2F%2Fwww.66ip.cn%2F%3Fsxb%3D%26tqsl%3D1000%26ports%255B%255D2%3D%26ktip%3D%26sxa%3D%26radio%3Dradio%26submit%3D%25CC%25E1%2B%2B%25C8%25A1",
+    "type" : "text",
+    "status" : 1,
+    "num" : 1,
+    "date" : NumberLong(1542870812059)
+}
+
+{
+    "url" : "http://www.66ip.cn/nmtq.php?getnum=300&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=&area=0&proxytype=1&api=66ip",
+    "type" : "text",
+    "status" : 0,
+    "num" : 0,
+    "date" : NumberLong(1542853743242)
+}
+
+{
+    "url" : "http://www.89ip.cn/tqdl.html?api=1&num=1000&port=&address=&isp=",
+    "type" : "text",
+    "status" : 0,
+    "num" : 0,
+    "date" : NumberLong(1542853874099)
+}
 ```
-
-
 
 ### 启动验证代理进程
 

@@ -171,7 +171,7 @@ public class VolidateTask implements Task {
 
                     updateSpiderUrl();
 
-                    if (System.currentTimeMillis() - lastUpdateRawProxyTime > 7200000) {
+                    if (System.currentTimeMillis() - lastUpdateRawProxyTime > 3600000) {
                         updateRawProxyReferenceNum();
                     }
                 }

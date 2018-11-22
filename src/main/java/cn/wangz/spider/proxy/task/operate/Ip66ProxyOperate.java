@@ -10,9 +10,13 @@ import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 免费HTTP代理 url : http://www.66ip.cn/mo.php?sxb=&tqsl=1000&port=&export=&ktip=&sxa=&submit=%CC%E1++%C8%A1&textarea=http%3A%2F%2Fwww.66ip.cn%2F%3Fsxb%3D%26tqsl%3D1000%26ports%255B%255D2%3D%26ktip%3D%26sxa%3D%26radio%3Dradio%26submit%3D%25CC%25E1%2B%2B%25C8%25A1
@@ -26,6 +30,8 @@ public class Ip66ProxyOperate implements SpiderOperate {
 
     private static final Logger logger = LoggerFactory.getLogger(Ip66ProxyOperate.class);
 
+    private static String _ydclearance = "";
+
     @Override
     public ProxyUrlContent download(String url, Proxy proxy) {
         try {
@@ -37,6 +43,7 @@ public class Ip66ProxyOperate implements SpiderOperate {
             connection.timeout(5000)
                     .method(Connection.Method.GET)
                     .header("Accept", "*/*")
+                    .cookie("_ydclearance", _ydclearance)
                     .followRedirects(true)	// 是否跟随跳转, 处理3开头的状态码
                     .ignoreHttpErrors(true)	// 是否忽略网络错误, 处理5开头的状态码
                     .ignoreContentType(true)	// 是否忽略类型, 处理图片、音频、视频等下载
@@ -50,6 +57,15 @@ public class Ip66ProxyOperate implements SpiderOperate {
             int status = response.statusCode();
             String charset = response.charset();
             if (charset == null) charset = "utf-8";
+
+            if (status == 521) {    // 生成cookies
+                String content = new String(response.bodyAsBytes(), charset);
+                if (modifyCookies(content)) {
+                    logger.info("modifyCookies _ydclearance:" + _ydclearance);
+                    return download(url, null);
+                }
+            }
+
             if (status != 404 && status != 403 && status < 500) {
                 byte[] content = response.bodyAsBytes();
                 if (content == null || content.length < 50) {
@@ -114,5 +130,36 @@ public class Ip66ProxyOperate implements SpiderOperate {
         }
 
         return rawProxies;
+    }
+
+
+    private static boolean modifyCookies(String content) throws Exception {
+        String pattern = "setTimeout\\(\"(.*)\", 200\\); (function.*;\\}) </script>";
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(content);
+        String excuteJs = null;
+        String funcJs = null;
+        if (m.find()) {
+            excuteJs = "var value=" + m.group(1);
+            funcJs = m.group(2).replaceAll("eval\\(\"qo=eval;qo\\(po\\);\"\\);", "return po;");
+        }
+        if (excuteJs == null || funcJs == null) return false;
+
+        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("js");
+        String script = funcJs + "\n" + excuteJs;
+        engine.eval(script);
+        String value = (String) engine.get("value");
+        String _ydclearancePattern = "ydclearance=(.*);";
+        Pattern _ydclearanceP = Pattern.compile(_ydclearancePattern);
+        Matcher _ydclearanceM = _ydclearanceP.matcher(value);
+        if (_ydclearanceM.find()) {
+            String group1 = _ydclearanceM.group(1);
+            if (group1 != null && group1.length() > 0 && !group1.equals(_ydclearance)) {
+                _ydclearance = group1;
+                return true;
+            }
+        }
+        return false;
     }
 }
